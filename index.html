@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캐나다 상식 퀴즈 🍁</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px;background:linear-gradient(135deg,#fff0f1,#eef3ff);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#202538}
+main{width:min(100%,650px);background:white;border-radius:24px;padding:clamp(22px,5vw,38px);box-shadow:0 15px 50px #20253818}
+.flag{text-align:center;font-size:42px}h1{text-align:center;margin:4px 0 8px;font-size:clamp(27px,5vw,36px)}.sub{text-align:center;color:#697187;margin:0 0 25px}
+button{font:inherit;cursor:pointer}.primary{width:100%;border:0;border-radius:13px;padding:14px;background:#d62839;color:white;font-weight:750;margin-top:18px}.primary:disabled{opacity:.5}
+#quiz,#result{display:none}.top{display:flex;justify-content:space-between;color:#697187;font-size:14px;margin-bottom:12px}.track{height:9px;border-radius:20px;background:#eceef4;overflow:hidden;margin-bottom:24px}#bar{height:100%;background:#d62839;width:0;transition:width .2s}
+.tag{display:inline-block;background:#fff0f1;color:#c52234;border-radius:30px;padding:6px 11px;font-size:13px;font-weight:700;margin-bottom:12px}.question{font-size:clamp(20px,4vw,25px);line-height:1.5;margin:0 0 20px}.answers{display:grid;gap:11px}.answer{padding:14px;text-align:left;border:2px solid #e5e8ef;background:white;border-radius:12px;font-weight:650;color:#202538}.answer:hover:not(:disabled){border-color:#df8992}.answer:disabled{opacity:1}.correct{background:#eaf8f1;border-color:#16845b}.wrong{background:#fff0f1;border-color:#d62839}
+#feedback{display:none;margin-top:16px;padding:13px;border-radius:12px;line-height:1.55}#feedback.good{display:block;background:#eaf8f1;color:#116444}#feedback.bad{display:block;background:#fff0f1;color:#9d1c2a}
+#next{display:none}#result{text-align:center}.score{font-size:54px;font-weight:850;color:#d62839;margin:12px}#result p{color:#697187;line-height:1.6}.small{text-align:center;color:#8a90a0;font-size:13px;margin-top:22px}
+</style>
+</head>
+<body>
+<main>
+<div class="flag">🍁</div><h1>캐나다 상식 퀴즈</h1><p class="sub">매번 순서가 바뀌는 10문제에 도전해 보세요!</p>
+<section id="start"><p style="text-align:center;line-height:1.7">문제 순서는 시작할 때마다 무작위로 섞여요.<br>정답을 고르면 바로 해설을 확인할 수 있어요.</p><button class="primary" id="startBtn">퀴즈 시작하기</button></section>
+<section id="quiz"><div class="top"><span id="count"></span><span id="score"></span></div><div class="track"><div id="bar"></div></div><span class="tag" id="kind"></span><h2 class="question" id="question"></h2><div class="answers" id="answers"></div><div id="feedback" role="status"></div><button class="primary" id="next">다음 문제</button></section>
+<section id="result"><h2>퀴즈 완료! 🎉</h2><div class="score" id="finalScore"></div><h3 id="grade"></h3><p id="message"></p><button class="primary" id="restart">다시 도전하기</button></section>
+<div class="small">즐겁게 배우는 캐나다 상식 🍁</div>
+</main>
+<script>
+const questions=[
+{q:"캐나다의 수도는 어디일까요?",a:["토론토","오타와","밴쿠버","몬트리올"],c:1,e:"캐나다의 수도는 온타리오주에 있는 오타와예요."},
+{q:"캐나다의 공식 공용어는 무엇일까요?",a:["영어만","영어와 프랑스어","프랑스어만","영어와 스페인어"],c:1,e:"캐나다의 연방 공용어는 영어와 프랑스어 두 가지예요."},
+{q:"캐나다 국기 가운데 그려진 것은 무엇일까요?",a:["별","독수리","곰","단풍나무 잎"],c:3,e:"캐나다 국기에는 빨간색 단풍나무 잎이 그려져 있어요."},
+{q:"캐나다는 세계에서 두 번째로 영토가 넓은 나라이다.",a:["O (맞다)","X (틀리다)"],c:0,e:"맞아요! 캐나다는 러시아 다음으로 세계에서 영토가 넓은 나라예요.",ox:true},
+{q:"나이아가라 폭포는 캐나다와 미국 국경 지역에 위치해 있다.",a:["O (맞다)","X (틀리다)"],c:0,e:"맞아요! 나이아가라 폭포는 캐나다와 미국의 국경에 걸쳐 있어요.",ox:true},
+{q:"캐나다 국기의 색깔은 무엇일까요?",a:["빨간색과 흰색","파란색과 흰색","초록색과 노란색","검은색과 빨간색"],c:0,e:"캐나다 국기는 빨간색과 흰색으로 이루어져 있어요."},
+{q:"캐나다가 위치한 대륙은 어디일까요?",a:["유럽","아시아","북아메리카","오세아니아"],c:2,e:"캐나다는 북아메리카 대륙의 북쪽에 위치해 있어요."},
+{q:"캐나다가 과거 식민지 지배를 받았던 나라는 어디일까요?",a:["미국과 멕시코","영국과 프랑스","중국과 일본","스페인과 포르투갈"],c:1,e:"캐나다는 영국과 프랑스의 식민지 지배를 거쳤어요."},
+{q:"캐나다에서 가장 인구가 많은 도시는 어디일까요?",a:["토론토","오타와","퀘벡시티","핼리팩스"],c:0,e:"토론토는 캐나다에서 인구가 가장 많은 도시예요."},
+{q:"캐나다의 대표적인 겨울 스포츠로 잘 알려진 것은 무엇일까요?",a:["스키와 아이스하키","서핑과 다이빙","크리켓과 럭비","승마와 양궁"],c:0,e:"캐나다에서는 아이스하키가 특히 인기 있는 스포츠이며 스키도 널리 즐겨요."}
+];
+let order=[],index=0,points=0,locked=false;
+const $=id=>document.getElementById(id);
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+function start(){order=shuffle([...questions.keys()]);index=0;points=0;$("start").style.display="none";$("result").style.display="none";$("quiz").style.display="block";show()}
+function show(){locked=false;const q=questions[order[index]];$("count").textContent=`문제 ${index+1} / 10`;$("score").textContent=`점수 ${points}`;$("bar").style.width=`${index*10}%`;$("kind").textContent=q.ox?"OX 문제":"객관식";$("question").textContent=q.q;$("feedback").className="";$("feedback").style.display="none";$("next").style.display="none";$("next").textContent=index===9?"결과 보기":"다음 문제";$("answers").innerHTML="";q.a.forEach((a,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=a;b.onclick=()=>choose(i);$("answers").appendChild(b)})}
+function choose(n){if(locked)return;locked=true;const q=questions[order[index]];[...$("answers").children].forEach((b,i)=>{b.disabled=true;if(i===q.c)b.classList.add("correct");else if(i===n)b.classList.add("wrong")});const good=n===q.c;if(good)points++;$("score").textContent=`점수 ${points}`;$("bar").style.width=`${(index+1)*10}%`;$("feedback").textContent=(good?"정답이에요! 🎉 ":"아쉬워요! 정답은 "+q.a[q.c]+"이에요. ")+q.e;$("feedback").className=good?"good":"bad";$("feedback").style.display="block";$("next").style.display="block"}
+function next(){if(!locked)return;if(++index<10)show();else finish()}
+function finish(){$("quiz").style.display="none";$("result").style.display="block";$("finalScore").textContent=`${points} / 10`;let g,m;if(points===10){g="캐나다 박사! 🏆";m="대단해요! 모든 문제를 맞혔어요."}else if(points>=8){g="캐나다 전문가! 🌟";m="훌륭해요! 캐나다에 대해 정말 잘 알고 있네요."}else if(points>=6){g="캐나다 탐험가! 🧭";m="잘했어요! 조금만 더 공부해 봐요."}else{g="캐나다 새싹 탐험가! 🍁";m="다시 도전하면서 캐나다에 대해 알아봐요."}$("grade").textContent=g;$("message").textContent=m}
+$("startBtn").onclick=start;$("next").onclick=next;$("restart").onclick=start;
+</script>
+</body></html>
